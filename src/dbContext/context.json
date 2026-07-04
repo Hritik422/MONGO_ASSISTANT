@@ -1,0 +1,208 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-07-04",
+
+  "collections": {
+    "destinations": {
+      "fields": {
+        "_id": "objectId",
+        "name": "string",
+        "image": "string",
+        "description": "string",
+        "priority": "string",
+        "location": "string",
+        "category": "string"
+      },
+      "sampleDocuments": [
+        {
+          "name": "Santorini",
+          "category": "Honeymoon",
+          "location": "Greece",
+          "priority": "1",
+          "image": "https://splashimage.com/greece"
+        }
+      ]
+    },
+
+    "itinerary": {
+      "fields": {
+        "_id": "string",
+        "destinationId": "objectId",
+        "title": "string",
+        "days": "array",
+        "descriptionContent": "string",
+        "descriptionHeading": "string",
+        "mainHeading": "string",
+        "backgroundUrl": "string",
+        "services": "object"
+      },
+      "sampleDocuments": [
+        {
+          "title": "Santorini 3-Day Itinerary",
+          "destinationId": "Santorini_ref",
+          "duration": "4 Days/3 Nights",
+          "experience": "Museums",
+          "descriptionContent": "Its a beautiful place",
+          "descriptionHeading": "Paradise",
+          "backgroundUrl":"https://splashimage.com/santorini"
+        }
+      ]
+    },
+
+    "categories": {
+      "fields": {
+        "_id": "objectId",
+        "category": "string",
+        "title": "string",
+        "subtitle": "string",
+        "image": "string"
+      },
+      "sampleDocuments": [
+        {
+          "category": "honeymoon",
+          "title": "Honeymoon"
+        }
+      ]
+    },
+
+    "reviews": {
+      "fields": {
+        "_id": "objectId",
+        "name": "string",
+        "location": "string",
+        "rating": "number",
+        "quote": "string"
+      },
+      "sampleDocuments": [
+        {
+          "name": "Sophia L.",
+          "location": "Paris, France",
+          "rating": 5,
+          "quote": "Flawless execution from start to finish."
+        }
+      ]
+    },
+
+    "queries": {
+      "fields": {
+        "_id": "objectId",
+        "name": "string",
+        "email": "string",
+        "location": "string",
+        "message": "string",
+        "contact": "string"
+      },
+      "sampleDocuments": [
+        {
+          "name": "Hritik Sharma",
+          "location": "Paris",
+          "message": "I want to travel"
+        }
+      ]
+    }
+  },
+
+  "enumMappings": {
+    "category": [
+      "Honeymoon"
+    ],
+    "location": [
+      "Greece",
+      "Paris",
+      "International"
+    ],
+    "rating": [1, 2, 3, 4, 5]
+  },
+
+  "synonymMappings": {
+    "category": {
+      "romantic": "Honeymoon",
+      "couple": "Honeymoon",
+      "love": "Honeymoon",
+      "honeymoon": "Honeymoon"
+    },
+    "location": {
+      "europe": "International",
+      "france": "Paris"
+    }
+  },
+
+  "relations": [
+    {
+      "from": "itinerary",
+      "localField": "destinationId",
+      "to": "destinations",
+      "foreignField": "_id",
+      "type": "one-to-one"
+    },
+    {
+      "from": "destinations",
+      "localField": "category",
+      "to": "categories",
+      "foreignField": "title",
+      "type": "many-to-one"
+    }
+  ],
+
+  "queryRules": {
+    "caseInsensitive": true,
+    "useExactEnumMatch": true,
+    "fallbackToRegex": true,
+    "maxLimit": 50,
+    "defaultSort": {
+      "priority": 1
+    }
+  },
+
+  "queryTemplates": {
+    "findDestinationsByCategory": {
+      "type": "aggregate",
+      "pipeline": [
+        {
+          "$lookup": {
+            "from": "categories",
+            "localField": "category",
+            "foreignField": "title",
+            "as": "categoryData"
+          }
+        },
+        {
+          "$unwind": "$categoryData"
+        },
+        {
+          "$match": {
+            "categoryData.title": "<CATEGORY>"
+          }
+        }
+      ]
+    },
+
+    "getItineraryByDestination": {
+      "type": "find",
+      "filter": {
+        "destinationId": "<DEST_ID>"
+      }
+    }
+  },
+
+  "promptHints": {
+    "instructions": [
+      "Always map user intent to valid category enum",
+      "Use $lookup when joining related collections",
+      "Do not invent new categories or fields",
+      "Use destinationId to fetch itinerary",
+      "Prefer exact matches over regex",
+      "Limit results to 50"
+    ],
+    "examples": [
+      {
+        "user": "romantic places",
+        "mappedCategory": "Honeymoon"
+      },
+      {
+        "user": "trip to santorini",
+        "action": "fetch destination + itinerary"
+      }
+    ]
+  }
+}
